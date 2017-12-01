@@ -1,0 +1,735 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+#GIVE ME MORE WINE 
+##by NISHCHAY CHAWLA
+
+
+========================================================
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages that you end up using in your analysis in this code
+# chunk.
+
+# Notice that the parameter "echo" was set to FALSE for this code chunk. This
+# prevents the code from displaying in the knitted HTML output. You should set
+# echo=FALSE for all code chunks in your file, unless it makes sense for your
+# report to show the code that generated a particular plot.
+
+# The other parameters for "message" and "warning" should also be set to FALSE
+# for other code chunks once you have verified that each plot comes out as you
+# want it to. This will clean up the flow of your report.
+
+library(ggplot2)
+library(gridExtra)
+library(GGally)
+
+```
+
+```{r, echo=FALSE}
+whw <- read.csv('wineQualityWhites.csv')
+#getting started
+p1 <- ggplot(data = whw) + theme_dark()
+whw$X <- NULL
+whw$quality <-  ordered(whw$quality)
+```
+
+
+
+
+## Introduction
+
+The dataset is related to white variant of the Portuguese "Vinho Verde" wine. 
+The dataset points out few of many factors which inflence world's all time 
+favourite beverage (WINE!!).Type of grapes, yeast strain used, age, temperature,
+aging process, are generally the terms understood by enthusiasts. Although the 
+dataset include variables based on physicochemical tests only, 
+it will be very intersting to draw patterns in the technicalities of wines 
+judged by the experts.
+
+
+### Citation
+P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis. 
+  Modeling wine preferences by data mining from physicochemical properties.
+  In Decision Support Systems, Elsevier, 47(4):547-553. ISSN: 0167-9236.
+
+  Available at: [@Elsevier] http://dx.doi.org/10.1016/j.dss.2009.05.016
+                [Pre-press (pdf)] http://www3.dsi.uminho.pt/pcortez/winequality09.pdf
+                [bib] http://www3.dsi.uminho.pt/pcortez/dss09.bib
+
+
+# Univariate Plots Section
+
+### Structure Of Data:
+
+
+```{r, echo=FALSE}
+str(whw)
+
+```
+
+The orignal dataset has quality as numeric variable but it is converted to an 
+ordered variable for the sake of exploration.
+
+### Summary Of Data
+
+
+```{r, echo=FALSE}
+summary(whw)
+```
+
+
+
+```{r,echo=FALSE, warning=FALSE, message=FALSE}
+# Following function will be used for creating histogram matrix as well as 
+#individual histogram
+# Plotting some variables together will make visualisation and explination easier.
+
+# Binwidths are slected by trails, the one which made histogram visually good and 
+# made explination easy.
+
+his.matrix <- function(abc, bin) {
+    binwidth <- bin 
+     ggplot(data = whw, aes_string(x = abc )) + 
+    geom_histogram( fill ='#44D7A8', colour = '#FFFF99', binwidth = binwidth) +
+    geom_vline(aes(xintercept = mean(whw[,abc] )) , color = 'purple', 
+               linetype = 'longdash', size = .75 ) +
+    geom_vline(aes(xintercept = median(whw[,abc] )), color = 'orange',
+                size = .8) +
+    geom_vline(aes(xintercept = quantile(whw[,abc], 0.25 )), 
+               linetype = 'dotted', size=0.5) + 
+    geom_vline( aes(xintercept=quantile(whw[,abc], 0.75 )), 
+               linetype = 'dotted', size=0.5)+
+    theme_dark() } 
+```
+
+
+```{r echo=FALSE, Univariate_Plots, warning=FALSE, message=FALSE}
+#grid of histograms of acid variables using his.matrix function and binwidth
+# of .009
+
+variable_a <- c("volatile.acidity","citric.acid")
+plots_a <- lapply(variable_a, his.matrix, bin=.009) 
+
+do.call(grid.arrange, args = c(plots_a, ncol = 1, top = 'Acidity'))
+
+
+
+```
+
+
+
+
+> *Purple-Dashed line indicates the mean, orange indicates the median,\
+while the dotted lines are for quartiles.*
+*1 dm^3 = 1 Liter*
+
+Both Citric and Acetic acid(indicated by volatile acid) are measured in gm/dm^3
+and have an almost normal distribution. Citric acid have an unusual peak at 
+0.49 gm/dm^3, this may be because of persence of many wines from one paticular 
+winemaker or because of any regulations.
+
+```{r, echo=FALSE,  warning=FALSE, message=FALSE}
+#grid of histograms of acid variable using his.matrix function and binwidth
+# of .09
+variable_f <- c("fixed.acidity")
+plots_f <- lapply(variable_f, his.matrix, bin=.09) 
+
+do.call(grid.arrange, args = c(plots_f, ncol = 1))
+```
+
+
+
+Fixed acidity indicates tartaric acid measured in gm/dm^3 is also almost normally
+distributed.
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+#grid of histograms of chloride using his.matrix function and binwidth
+# of .003
+
+variable_d <- c("chlorides" )
+plots_d <- lapply(variable_d, his.matrix, bin = .003)
+
+do.call(grid.arrange, args = c(plots_d, ncol = 1, top = 'Chloride'))
+
+
+```
+
+
+
+
+The chloride data looks very lepokurtic as most data lies in 0.1 range.
+Infact 3rd Quartile at 0.05 indicates 75% data lies between 0.009 an 0.05
+(0.009 being min. value). Although data goes upto .34, very very few value lies
+above .1.
+
+
+```{r,echo=FALSE,  warning=FALSE, message=FALSE}
+#grid of sulphur variables
+variable_b <- c("free.sulfur.dioxide","total.sulfur.dioxide" )
+plots_b <- lapply(variable_b, his.matrix, bin = 2)
+
+do.call(grid.arrange, args = c(plots_b, ncol = 1, top = 'Sulphur Dioxide'))
+```
+
+
+
+Both Free and Total Sulphur dioxied have symmetric data and both are measured in
+mg/dm^3
+
+
+```{r, echo=FALSE,  warning=FALSE, message=FALSE}
+
+#grid of histograms of density variables using his.matrix function and binwidth
+# of .0006
+variable_e <- c("density" )
+plots_e <- lapply(variable_e, his.matrix, bin = .0006)
+do.call(grid.arrange, args = c(plots_e, ncol = 1, top = 'Density'))
+
+
+
+```
+
+
+
+
+
+
+The density data is present in extremely narrow range. As indicated from summary
+and the visualisation above min value is .9871 and 3 Qt is at .9961. This is an
+very interesting observation because with almost 4900 observations this small range 
+can help making a generalised statement like wines have density of .99 gm/cm^3.
+This value can be used for doing mathematical calculations.
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+#grid of histograms of pH using his.matrix function and binwidth
+# of .009
+
+variable_h <- c("pH")
+plots_h <- lapply(variable_h, his.matrix, bin = .009)
+
+do.call(grid.arrange, args = c(plots_h, ncol = 1))
+```
+
+
+
+pH range of wine in our datset 2.7 and 3.8, with average of 3.18. 
+pH is basically a measure of acidity with 0 being most acidic , 7, neutral and 
+14 being highly basic. 
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+#grid of histograms of sulphate variables using his.matrix function and binwidth
+# of .01
+variable_c <- c("sulphates")
+plots_c <- lapply(variable_c, his.matrix, bin = .01)
+
+do.call(grid.arrange, args = c(plots_c, ncol = 1))
+
+
+```
+
+
+
+
+Sulphates are also measured in gm/dm^3 and the data have some peaks.
+
+```{r, echo=FALSE,  warning=FALSE, message=FALSE}
+
+#grid of histograms of alcohol variables using his.matrix function and binwidth
+# of .07
+variable_i <- c("alcohol")
+plots_i <- lapply(variable_i, his.matrix, bin = .07)
+
+do.call(grid.arrange, args = c(plots_i, ncol = 1))
+
+
+```
+
+
+
+
+Alcohol measured in % volume dosen't show much symmetry and have values between 
+8 and 14 with 75% lying below 11.4. As visible we have most no. of wines 
+with alcohol percent between 9.5 and 9.6.
+
+
+
+
+```{r, echo=FALSE, message=FALSE}
+
+p10 <- p1+ aes(x = residual.sugar)+
+  geom_histogram(fill =I('#44D7A8'), binwidth = .009 )+
+  scale_x_log10(breaks = seq(1,15,1))+
+  geom_vline(aes(xintercept = median(whw$residual.sugar )), color = 'pink',
+             size = .8) +
+  geom_vline(aes(xintercept = mean(whw$residual.sugar)) , color = 'purple', 
+             linetype = 'longdash', size = .75 )+
+  geom_vline(aes(xintercept = quantile(whw$residual.sugar, 0.25 )), 
+             linetype = 'dotted', size=0.5) + 
+  geom_vline( aes(xintercept=quantile(whw$residual.sugar, 0.75 )), 
+              linetype = 'dotted', size=0.5)+
+  xlab('residual sugar (Log scale)')
+
+
+variable_g <- c("residual.sugar" )
+plots_g <- lapply(variable_g, his.matrix, bin = .5)
+
+plots_g[[2]] <- p10
+do.call(grid.arrange, args = c(plots_g, ncol = 1, top = "Resdidual Sugar"))
+
+
+
+```
+
+
+
+* Purple-Dashed line indicates the mean, orange indicates the median, 
+while the dotted lines are for quartiles.
+
+
+Residual Sugar, or RS for short, refers to any natural grape sugars that 
+is leftover after fermentation ceases. When plotted on log scale showed 
+much better visualisation. Half of the wines have RS between 0.5 and
+5 gm/liter while the other half lies between 5 and 20 gm/liter. The data seems to
+have a normal distribution betweem 0 and 5 gm/liter on log scale.
+
+```{r,echo=FALSE, message=FALSE}
+p10 <- p1+ aes(x = quality)+
+  geom_bar(fill ='#44D7A8',colour = '#FFFF99')
+p10
+```
+
+
+Quality :  score between 0 and 10
+```{r,echo=FALSE, message=FALSE}
+
+summary(whw$quality)
+```
+
+Most wines were rated 5 or 6, only 5 were rated 9
+
+
+
+# Univariate Analysis
+
+
+### What is the structure of your dataset?
+
+The data has **11 parameters** and expert rating of **4898 wines**.
+
+*Input variables* :
+
+1. fixed acidity (tartaric acid - g / dm^3) 
+
+2. volatile acidity (acetic acid - g / dm^3) 
+
+3. citric acid (g / dm^3) 
+
+4. residual sugar (g / dm^3) 
+
+5. chlorides (sodium chloride - g / dm^3 
+
+6. free sulfur dioxide (mg / dm^3) 
+
+7. total sulfur dioxide (mg / dm^3) 
+
+8. density (g / cm^3) 
+
+9. pH 
+
+10. sulphates (potassium sulphate - g / dm3) 
+
+11. alcohol (% by volume)  
+
+*Output variable*:
+1. Quality (score between 0 and 10) # Missing Attribute Values: None
+
+### What is/are the main feature(s) of interest in your dataset?
+
+1. Most of the wine are rated 5 or 6 by the experts, this might be an intersting
+point because generally human judgement tend to follow a normal distribution, 
+i.e. most of us stays in between and avoid extremities. 
+Although experts, judge on strict parameters but when close to 4900 wine are 
+judged, a normal-ish pattern emerged.
+2. Yeast feasts on sugar to produce alcohol in fermentation process, 
+also alcohol and residual sugar dont follow the general trend of normal 
+distribution, this may reveal some new patterns.
+
+
+### What other features in the dataset do you think will help support your \
+investigation into your feature(s) of interest?
+
+1. pH values conveys basic detials about acidity and acidity inturn 
+plays an important role in providing wine its taste, so it might be an 
+intersting factor.
+2. Production of alcohol also varies densities.
+3. Sulfur dioxide is an integral part of wine making, so it can't be ignored here.
+
+### Did you create any new variables from existing variables in the dataset?
+No new variables were created
+
+### Of the features you investigated, were there any unusual distributions? \
+Did you perform any operations on the data to tidy, adjust, or change the form \
+of the data? If so, why did you do this?
+1. When observed closely on log scale residual sugar seemed to follow normal
+distribution in intervals. Log scale was chosen because the data showed 
+skewness and most of the values were near 1 and 10
+2. Quality variable was present as numeric variable initially, 
+it was converted to ordered factor to make it more like a ranking system.
+
+***
+
+# Bivariate Plots Section
+
+```{r ,echo=FALSE, Bivariate_Plots, message=FALSE, warning=FALSE,fig.width=9, fig.height= 8 }
+
+ggpairs(data = whw,
+        lower = list(continuous = wrap("points", shape = I('.'))),
+        upper = list(combo = wrap("box", outlier.shape = I('.'))))
+
+
+```
+
+
+
+The upper triangle show corelation and lower triangle has the scatterplots 
+between all the quantitative variables of dataset.
+Such matrix makes it very easy to pinpoint variables with noticeable pattern
+
+```{r, echo=FALSE, message=FALSE, warning= FALSE}
+
+p11 <- ggplot(data= whw, aes(y = alcohol,x = quality))+
+  geom_boxplot(colour = "#44D7A8")+
+  geom_jitter(alpha=1/20)+
+  theme_dark()+
+  stat_summary(fun.y = "mean", 
+               geom = "point", 
+               color = "red", 
+               shape = 8, 
+               size = 4)
+p11
+
+```
+
+
+
+A box plot is an efficient way of visualising continous data against 
+categorical data. Upper line of box indicates 3qt, 
+lower indicates 1Qt while solid line inside the box indicates the median.
+A trend is clearly visible in the above plot.
+
+```{r , echo=FALSE, message=FALSE}
+ggplot(data = whw,aes(y = chlorides,x = quality ))+
+  geom_boxplot(colour = "#44D7A8")+
+  geom_jitter(alpha=1/20)+
+  theme_dark()+
+  coord_cartesian(ylim = c(0,0.15))+
+  stat_summary(fun.y = "mean", 
+               geom = "point", 
+               color = "red", 
+               shape = 8, 
+               size = 4)
+```
+
+
+```{r, echo=FALSE, message=FALSE}
+ggplot(data = whw, aes(x = quality, y = pH))+
+  geom_boxplot(colour = "#44D7A8")+
+  geom_jitter(alpha=1/20)+
+  theme_dark()+
+  stat_summary(fun.y = "mean", 
+               geom = "point", 
+               color = "red", 
+               shape = 8, 
+               size = 4)
+```
+
+
+
+White wines of all ratings have pH in the range 3 to 3.3,  except for very few.
+The " * " indicates the mean value of variables in different qualities.
+
+
+```{r, echo=FALSE, message=FALSE, warning= FALSE}
+p2 <- ggplot(data = whw, aes(x = quality, fill = quality))+
+  geom_boxplot()+
+  scale_fill_brewer(type = 'qual', palette = 6, guide = F)+
+  theme_dark()
+
+p3 <- p2+aes(y = total.sulfur.dioxide)+
+  ylab('Total Sulphur Dioxide')
+p4 <- p2+aes(y = free.sulfur.dioxide)+
+  ylab('Free Sulphur Dioxoide' )
+p5 <- p1+ aes(x =alcohol, y = total.sulfur.dioxide)+
+  geom_point(colour='#44D7A8', alpha = 1/4)+
+  geom_smooth(method = 'lm')+
+  ylab('Total Sulphur Dioxide')
+p6 <- p1+ aes(x =alcohol, y = free.sulfur.dioxide)+
+  geom_point(colour='#44D7A8', alpha = 1/4)+
+  geom_smooth(method = 'lm')+
+  ylab('Free Sulphur Dioxoide')
+
+
+grid.arrange(p3,p4,p5,p6, top = 'Sulphur Relations')
+```
+
+
+
+No paticular pattern emerged from the above graphs.
+
+```{r, echo=FALSE, message=FALSE}
+
+p1+aes(y = alcohol, x = residual.sugar)+
+  geom_point(colour='#44D7A8', alpha = 1/4)+
+  geom_smooth(method='lm')+
+  coord_cartesian(ylim = c(7.5,14), xlim=c(0,23))+
+  xlab('residual sugar (g / dm^3)')+
+  ggtitle('Alcohol vs Residual Sugar')
+  
+```
+
+
+```{r, echo=FALSE, message=FALSE}
+p1+aes(x = density, y =alcohol)+
+  geom_point(colour='#44D7A8', alpha = 1/4)+
+  geom_smooth(method='lm')+
+  coord_cartesian(xlim = c(0.985,1.0025), ylim = c(7.5,15))+
+  ggtitle('Alcohol vs Density')
+```
+
+
+Alcohol have negative correlatiion with Residual sugar and density, 
+and a similar trend is observed in the scatterplots.
+
+```{r, echo=FALSE, message=FALSE}
+p1+ aes(x= chlorides, y = alcohol)+
+  geom_point(colour='#44D7A8', alpha = 1/3)+
+  coord_cartesian(xlim= c(0,0.2), ylim=c(7.5,14))+
+  geom_smooth(method='lm')+
+  ggtitle('Alcohol vs Chlorides')
+```
+
+
+
+The majority of wines have chlorides between .01 and .075.
+
+# Bivariate Analysis
+
+
+
+### Talk about some of the relationships you observed in this part of the \n investigation. How did the feature(s) of interest vary with other features in \n the dataset?
+
+Some negative correlations were observed in mathematical and visual form.
+The negative correlation between alcohol and residual sugar made complete sense, 
+because yeast consume sugar to produce alcohol, and the sugar which is left 
+after the fermentation ceases is the residual sugar. Infact one of the reason for 
+fermentation reaction to stop is the increase in percentage of alcohol, 
+yeast generally don't survive once 12%-14% concerntration is achieved and this
+is also visible in our data as wine having max alcohol has 14.2% .
+
+Another interesting trend was wine rated higher have more alcohol percentage.
+
+
+### Did you observe any interesting relationships between the other features \
+(not the main feature(s) of interest)?
+
+Variation of density with alcohol percent. The density decreases as alcohol
+increases.
+
+### What was the strongest relationship you found?
+1. The ranking of higher alcohol percentage wines was clearly more.
+2. ALcohol and density had a strong negative corelation.
+
+***
+
+# Multivariate Plots Section
+
+
+```{r echo=FALSE, Multivariate_Plots}
+p12 <- ggplot(data = whw ,aes(x = residual.sugar, y = density, colour = quality ))+
+  geom_point(alpha =1/2)+
+  geom_smooth(method = "lm", se = F, size = .5)+
+  scale_color_brewer(type = 'div', palette =  'RdBu')+ theme_dark()+
+  coord_cartesian(xlim=c(0,22), ylim = c(0.985,1.0025))
+
+p12
+
+```
+
+
+
+Low density and low residual sugar i.e bottom left part of graph sees 
+overcrowding of higher rated wines.
+The Lines are plotted according to a linear regression model.
+
+```{r, echo=FALSE, message=FALSE}
+ggplot(data = whw, aes(x = density, y = alcohol, colour = quality ))+
+  geom_point(alpha = 1/2)+
+  geom_smooth(method = "lm", se = F, size = .5)+
+  scale_color_brewer(type = 'div', palette =  'RdBu')+ theme_dark()+
+  coord_cartesian( xlim = c(0.985,1.0025), ylim = c(7,14))
+```
+
+
+
+The graph shows two clusters one with rating 7 and obove with density .990 and 
+second one with rating 6 and below with density .995-1.00.
+
+
+```{r, echo=FALSE, message=FALSE}
+ggplot(data = whw, aes(x = residual.sugar, y = alcohol, colour = quality ))+
+  geom_point(alpha =1/2)+
+   geom_smooth(method = "lm", se = F, size = .5)+
+  scale_color_brewer(type = 'div', palette =  'RdBu')+ theme_dark()+
+  coord_cartesian( xlim = c(0,22), ylim = c(7,14))
+```
+
+
+
+
+
+The above three graphs shows that higher rated wine have density and residual
+sugar on the lower side and alcohol on the higher as side, the Lines are 
+plotted according to a linear regression model, which makes it even more clearer
+to visualise that. 
+
+
+
+# Multivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. Were there features that strengthened each other in terms of \
+looking at your feature(s) of interest?
+
+As observed earlier higher rated wines tend to have higher alcohol percentage 
+which inturn is negatively corelated with residual sugar and density, 
+so when all these variables were plotted together, the whole concept made more sense 
+
+
+### Were there any interesting or surprising interactions between features?
+The plotted variables interacted as expected.
+
+
+------
+
+# Final Plots and Summary
+
+
+### Plot One
+```{r echo=FALSE, Plot_One}
+
+p10 +  xlab('Quality (score between 0 and 10)')+
+  ggtitle('Quality Bar Chart')
+```
+
+
+
+
+>“Accept what life offers you and try to drink from every cup. 
+All wines should be tasted; some should only be sipped, but with others, 
+drink the whole bottle.” 
+    ― Paulo Coelho, Brida
+
+
+
+
+### Description One
+This one simple graph is conveying a lot more than just ranking,
+there is a high possibility it is defining human behaviour. 
+A simple search on google about about wine making provides methods to make your own wine.
+Apart from some basic framework the wine making process is very flexible, 
+and we generally try to make thing just right. 
+Not too spicy. Not too sweet. Just right. Most of the things we buy or make 
+have to fit in that middle ground. The whole process from selecting grapes to 
+fermentation to ageging is relying on the different definitions of just right, 
+maybe this is the reason there are very few wines with rating 3 or 9. 
+That is why the presence of normal distribution in most of the parameters 
+makes a lot of sense.
+Although, it goes without saying that what might be 3 for one will be a 
+9 for other, but that also brings a lot of other factor in picture,
+anyhow in general human behaviour follows a normal distribution. 
+
+
+
+
+### Plot Two
+```{r echo=FALSE, Plot_Two}
+
+  p11 + ggtitle('Alcohol content in different Qualities')+
+  ylab('alcohol (% by volume)')+
+  xlab('Quality (score between 0 and 10)' ) 
+```
+
+
+
+
+### Description Two
+The graph showed a significant pattern that more alcohol 
+content returns better rating.
+This might also be an insight to rating sysytem because ~1% change in median
+alcohol value in wines with rating 5 and above, improved the rating by one unit. 
+
+
+
+
+### Plot Three
+```{r echo=FALSE, Plot_Three}
+p12 + ggtitle('Density vs Residual Sugar', subtitle = 'As per quality')+
+  ylab('density (g / cm^3)')+
+  xlab('residual sugar (g / dm^3)' ) 
+```
+
+
+
+
+
+
+### Description Three
+This graph shows all the key observations made among the parameters.
+Higher rated alcohol has low sugar and low density. Fermentation ceases once
+alcohol percentage is in between 12-14 (remember alcohol and residual sugar are
+negatively co-related), thus reaching that levels is like getting the maximum 
+out of yeast.
+Fermentation also depend on other factors like temperature, acidity etc 
+and mantaining those at higher level of alcohol(low residual sugar) 
+can be even more challenging, thus managing to get those higher level is 
+clearly rewarded by experts.
+------
+
+
+
+
+# Reflection
+
+
+I started by studying some basic fundamentals about wine making to get 
+a better understanding of data like the role of sulphur dioxide, acidity etc.
+Then proceeded to make some random graphs matrix which helped me selcting some 
+key variables like alcohol percentage, residual sugar. Working on this dataset 
+
+The persence of normal distribution among most values facinated me alot but that
+also became a challenge, because one can point out abnormalities and express
+those in words. With normal distributions only few options like
+mean, median, quartile range, come to mind initially but on close observations and
+patience data started making sense.
+Another challenge was making a clean code which was overcomed by use of custom
+functions
+
+In future I hope to create a model for predicting the quality of wine, also 
+innclusion of price, age of the wine and adding more regions could make this
+dataset even more exciting.
+
+> “Either give me more wine or leave me alone.” 
+ ― Jalaluddin Rumi
