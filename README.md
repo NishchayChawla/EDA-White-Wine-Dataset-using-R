@@ -9,8 +9,8 @@ This data set is provided by Udacity using the following research article:
 Cortez, P.; Cerdeira, A.; Almeida, F.; Matos, T.; Reis, J. Modeling wine preferences by data mining from physicochemical properties. Decision Support Systems. 2009, 47, 547-553.
 
 ### Files:
-EDA_Wh_Wine_Nishchay.rmd: R markdown file having all the code.
+EDA_Wh_Wine_Nishchay.rmd: R markdown file having all the code which generated graphs shown in EDA_pdf.
 
-EDA_Wh_Wine_Nishchay_2.webarchive: The final document of the project knited from rmd file, having all the graphs and analysis.
+EDA_pdf.pdf: The pdf copy of the project knited from rmd file, having all the graphs, analysis and summary of the project.
 
 wineQualityWhites.csv: Data set for the project.
